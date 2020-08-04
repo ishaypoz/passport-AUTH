@@ -24,6 +24,12 @@ passport.use(new localStartegy(User.authenticate())); //authenticate came with p
 passport.serializeUser(User.serializeUser()); //use passportLocalMongoose
 passport.deserializeUser(User.deserializeUser()); //use passportLocalMongoose
 
+//get user in every page
+app.use(function(req, res, next){
+	res.locals.user = req.user;
+	next();
+});
+
 /*=========== 
     Routes 
 ============*/
