@@ -10,18 +10,19 @@ app = express();
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
+//This is passport configuration
 app.use(
 	require('express-session')({
 		secret: 'Secret Words',
-		resave: false,
+		resave: false, //option you have to use
 		saveUnitialized: false
 	})
 );
 app.use(passport.initialize());
 app.use(passport.session());
-passport.use(new localStartegy(User.authenticate()));
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
+passport.use(new localStartegy(User.authenticate())); //authenticate came with passportLocalMongoose
+passport.serializeUser(User.serializeUser()); //use passportLocalMongoose
+passport.deserializeUser(User.deserializeUser()); //use passportLocalMongoose
 
 /*=========== 
     Routes 
@@ -32,7 +33,8 @@ app.get('/', function (req, res) {
 });
 
 app.get('/secret', isLoggedIn, function (req, res) {
-	res.render('secret');
+	// console.log(req.user); get the user id and username
+	res.render('secret', { user: req.user });
 });
 
 //register routes
@@ -40,11 +42,13 @@ app.get('/register', function (req, res) {
 	res.render('register');
 });
 app.post('/register', function (req, res) {
+	//.register provided by passportLocaclMongoose get(user object, password, callback)
 	User.register(new User({ username: req.body.username }), req.body.password, function (err, user) {
 		if (err) {
 			console.log(err);
 			return res.render('register');
 		} else {
+			//authenticad with the local startegy
 			passport.authenticate('local')(req, res, function () {
 				res.redirect('/secret');
 			});
@@ -58,12 +62,13 @@ app.get('/login', function (req, res) {
 });
 //login logic
 //middleware "authenticate" run before callback function
+//this authenticate function from passportLocalMongoose take username from db and match the password with it
 app.post(
 	'/login',
 	passport.authenticate('local', {
 		successRedirect: '/secret',
 		failureRedirect: '/register'
-	}),
+	}), //tells the authenticate where to redirect
 	function (req, res) {
 		User;
 	}
